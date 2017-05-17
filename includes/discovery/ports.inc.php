@@ -6,6 +6,7 @@ $port_stats = snmpwalk_cache_oid($device, 'ifDescr', $port_stats, 'IF-MIB');
 $port_stats = snmpwalk_cache_oid($device, 'ifName', $port_stats, 'IF-MIB');
 $port_stats = snmpwalk_cache_oid($device, 'ifAlias', $port_stats, 'IF-MIB');
 $port_stats = snmpwalk_cache_oid($device, 'ifType', $port_stats, 'IF-MIB');
+$port_stats = snmpwalk_cache_oid($device, 'ifPhysAddress', $port_stats, 'IF-MIB');
 
 // End Building SNMP Cache Array
 d_echo($port_stats);
@@ -37,7 +38,7 @@ foreach ($ports_mapped['maps']['ifIndex'] as $ifIndex => $port_id) {
     }
 }
 
-
+$arr_ports = [];
 // New interface detection
 foreach ($port_stats as $ifIndex => $port) {
     // Store ifIndex in port entry and prefetch ifName as we'll need it multiple times
@@ -45,6 +46,13 @@ foreach ($port_stats as $ifIndex => $port) {
     $ifName = $port['ifName'];
     $ifAlias = $port['ifAlias'];
     $ifDescr = $port['ifDescr'];
+    $ifPhysAddress = $port['ifPhysAddress'];
+    if (strpos($ifPhysAddress, ':')) {
+        list($a_a, $a_b, $a_c, $a_d, $a_e, $a_f) = explode(':', $ifPhysAddress);
+        $ifPhysAddress = zeropad($a_a).zeropad($a_b).zeropad($a_c).zeropad($a_d).zeropad($a_e).zeropad($a_f);
+    }
+
+
 
     // Get port_id according to port_association_mode used for this device
     $port_id = get_port_id($ports_mapped, $port, $port_association_mode);
@@ -62,6 +70,13 @@ foreach ($port_stats as $ifIndex => $port) {
         } else {
             echo '.';
         }
+
+        array_push($arr_ports,array('port_id' => $port_id,
+            'ifPhysAddress' => $ifPhysAddress,
+            'ifIndex' => $ifIndex,
+            'ifName' => $ifName,
+            'ifAlias' => $ifAlias,
+            'ifDescr' => iconv("GB2312","UTF-8//IGNORE",$ifDescr)));
 
         // We've seen it. Remove it from the cache.
         unset($ports_l[$ifIndex]);
@@ -93,6 +108,10 @@ foreach ($ports_l as $ifIndex => $port_id) {
         echo '-'.$ifIndex;
     }
 }
+
+postData2api(json_encode($arr_ports,JSON_UNESCAPED_UNICODE),'ports','device_id='.$device['device_id']);
+unset($arr_ports);
+
 
 // End interface deletion
 echo "\n";

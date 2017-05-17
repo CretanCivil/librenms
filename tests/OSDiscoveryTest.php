@@ -206,6 +206,7 @@ class DiscoveryTest extends \PHPUnit_Framework_TestCase
 
     public function testApcMgeups()
     {
+        $this->checkOS('apc-mgeups');
         $this->checkOS('apc-mgeups', 'mgeups-galaxy');
     }
 
@@ -355,6 +356,11 @@ class DiscoveryTest extends \PHPUnit_Framework_TestCase
     {
         $this->checkOS('bnt');
         $this->checkOS('bnt', 'bnt1');
+    }
+
+    public function testBreeze()
+    {
+        $this->checkOS('breeze');
     }
 
     public function testBrother()
@@ -737,6 +743,11 @@ class DiscoveryTest extends \PHPUnit_Framework_TestCase
     public function testExinda()
     {
         $this->checkOS('exinda');
+    }
+
+    public function testExtendAir()
+    {
+        $this->checkOS('extendair');
     }
 
     public function testExtrahop()
@@ -1602,6 +1613,11 @@ class DiscoveryTest extends \PHPUnit_Framework_TestCase
         $this->checkOS('sanos');
     }
 
+    public function testScopia()
+    {
+        $this->checkOS('scopia');
+    }
+
     public function testScreenos()
     {
         $this->checkOS('screenos');
@@ -1645,6 +1661,11 @@ class DiscoveryTest extends \PHPUnit_Framework_TestCase
     public function testSinetica()
     {
         $this->checkOS('sinetica');
+    }
+
+    public function testSiteMonitor()
+    {
+        $this->checkOS('sitemonitor');
     }
 
     public function testMegatec()
@@ -1755,6 +1776,11 @@ class DiscoveryTest extends \PHPUnit_Framework_TestCase
     public function testTpconductor()
     {
         $this->checkOS('tpconductor');
+    }
+
+    public function testTpdin()
+    {
+        $this->checkOS('tpdin');
     }
 
     public function testTplink()

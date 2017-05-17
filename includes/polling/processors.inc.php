@@ -27,12 +27,12 @@ foreach (dbFetchRows('SELECT * FROM processors WHERE device_id = ?', array($devi
     $proc = round(($proc / $processor['processor_precision']), 2);
 
     echo $proc."%\n";
-
+    $processor_descr = $processor['processor_descr'];
     $fields = array(
         'usage' => $proc,
     );
 
-    $tags = compact('processor_type', 'processor_index', 'rrd_name', 'rrd_def');
+    $tags = compact('processor_type', 'processor_index', 'rrd_name', 'rrd_def', 'processor_descr');
     data_update($device, 'processors', $tags, $fields);
 
     dbUpdate(array('processor_usage' => $proc), 'processors', '`processor_id` = ?', array($processor['processor_id']));

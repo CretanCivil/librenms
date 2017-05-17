@@ -371,6 +371,7 @@ function delete_device($id)
 
     $ret .= "Removed device $host\n";
     log_event("Device $host has been removed", 0, 'system', 3);
+    oxidized_reload_nodes();
     return $ret;
 }
 
@@ -398,9 +399,12 @@ function addHost($host, $snmp_version = '', $port = '161', $transport = 'udp', $
 {
     global $config;
 
-    // Test Database Exists
-    if (host_exists($host) === true) {
-        throw new HostExistsException("Already have host $host");
+
+    if($config['host_dynamic_ip'] != true) {//动态ip不能参考ip
+        // Test Database Exists
+        if (host_exists($host) === true) {
+            //throw new HostExistsException("Already have host $host");
+        }
     }
 
     // Valid port assoc mode
@@ -415,7 +419,8 @@ function addHost($host, $snmp_version = '', $port = '161', $transport = 'udp', $
         $ip = $host;
     }
     if ($force_add !== true && ip_exists($ip)) {
-        throw new HostIpExistsException("Already have host with this IP $host");
+        //强制采集 因为要汇报服务器
+        //throw new HostIpExistsException("Already have host with this IP $host");
     }
 
     // Test reachability
@@ -454,8 +459,9 @@ function addHost($host, $snmp_version = '', $port = '161', $transport = 'udp', $
                 }
             }
         } elseif ($snmpver === "v2c" || $snmpver === "v1") {
-            // try each community from config
-            foreach ($config['snmp']['community'] as $community) {
+            if(isset($config['snmp']['v2c']['community'][$host])) {
+                $community = $config['snmp']['v2c']['community'][$host];
+
                 $device = deviceArray($host, $community, $snmpver, $port, $transport, null, $port_assoc_mode);
 
                 if ($force_add === true || isSNMPable($device)) {
@@ -468,6 +474,23 @@ function addHost($host, $snmp_version = '', $port = '161', $transport = 'udp', $
                     }
                 } else {
                     $host_unreachable_exception->addReason("SNMP $snmpver: No reply with community $community");
+                }
+            } else {
+                // try each community from config
+                foreach ($config['snmp']['community'] as $community) {
+                    $device = deviceArray($host, $community, $snmpver, $port, $transport, null, $port_assoc_mode);
+
+                    if ($force_add === true || isSNMPable($device)) {
+                        if ($force_add !== true) {
+                            $snmphost = snmp_get($device, "sysName.0", "-Oqv", "SNMPv2-MIB");
+                        }
+                        $result = createHost($host, $community, $snmpver, $port, $transport, array(), $poller_group, $port_assoc_mode, $snmphost, $force_add);
+                        if ($result !== false) {
+                            return $result;
+                        }
+                    } else {
+                        $host_unreachable_exception->addReason("SNMP $snmpver: No reply with community $community");
+                    }
                 }
             }
         } else {
@@ -682,6 +705,9 @@ function createHost(
     $snmphost = '',
     $force_add = false
 ) {
+
+    global $config;
+
     $host = trim(strtolower($host));
 
     $poller_group=getpollergroup($poller_group);
@@ -694,7 +720,7 @@ function createHost(
 
     $device = array(
         'hostname' => $host,
-        'sysName' => $host,
+        'sysName' => $snmphost,
         'os' => 'generic',
         'community' => $community,
         'port' => $port,
@@ -712,17 +738,47 @@ function createHost(
         $device['os'] = getHostOS($device);
     }
 
-    if (host_exists($host, $snmphost)) {
-        throw new HostExistsException("Already have host $host ($snmphost)");
+
+    if($config['host_dynamic_ip'] == true) {//动态ip
+        $device_id = dbFetchRow('SELECT device_id  FROM devices WHERE sysName = ?', array($snmphost),true);
+        if($device_id) {
+            dbUpdate($device,'devices','device_id = ?',array($device_id));
+            $device['device_id'] = $device_id['device_id'];
+            postData2api(json_encode($device),'device');
+            return $device_id;
+        } else {
+            $device_id = dbInsert($device, 'devices');
+            if ($device_id) {
+                oxidized_reload_nodes();
+                $device['device_id'] = $device_id;
+                postData2api(json_encode($device),'device');
+                return $device_id;
+            }
+
+            throw new \Exception("Failed to add host to the database, please run ./validate.php");
+        }
+    } else {
+        if (host_exists($host, $snmphost)) {
+            $device_id = dbFetchRow('SELECT device_id  FROM devices WHERE hostname = ?', array($host),true);
+            $device['device_id'] = $device_id['device_id'];
+            postData2api(json_encode($device),'device');
+            throw new HostExistsException("Already have host $host ($snmphost)");
+        }
+
+        $device_id = dbInsert($device, 'devices');
+        if ($device_id) {
+            oxidized_reload_nodes();
+            $device['device_id'] = $device_id;
+            postData2api(json_encode($device),'device');
+            return $device_id;
+        }
+
+        throw new \Exception("Failed to add host to the database, please run ./validate.php");
     }
 
-    $device_id = dbInsert($device, 'devices');
-    if ($device_id) {
-        oxidized_reload_nodes();
-        return $device_id;
-    }
 
-    throw new \Exception("Failed to add host to the database, please run ./validate.php");
+
+
 }
 
 function isDomainResolves($domain)
@@ -1559,7 +1615,7 @@ function oxidized_reload_nodes()
     global $config;
 
     if ($config['oxidized']['enabled'] === true && $config['oxidized']['reload_nodes'] === true && isset($config['oxidized']['url'])) {
-        $oxidized_reload_url = $config['oxidized']['url'] . '/reload?format=json';
+        $oxidized_reload_url = $config['oxidized']['url'] . '/reload.json';
         $ch = curl_init($oxidized_reload_url);
 
         curl_setopt($ch, CURLOPT_TIMEOUT, 5);
@@ -1650,9 +1706,16 @@ function rrdtest($path, &$stdOutput, &$stdError)
 
 function create_state_index($state_name)
 {
-    if (dbFetchRow('SELECT * FROM state_indexes WHERE state_name = ?', array($state_name)) != true) {
+    $state_index_id = dbFetchCell('SELECT `state_index_id` FROM state_indexes WHERE state_name = ? LIMIT 1', array($state_name));
+    if (!is_numeric($state_index_id)) {
         $insert = array('state_name' => $state_name);
         return dbInsert($insert, 'state_indexes');
+    } else {
+        $translations = dbFetchRows('SELECT * FROM `state_translations` WHERE `state_index_id` = ?', array($state_index_id));
+        if (count($translations) == 0) {
+            // If we don't have any translations something has gone wrong so return the state_index_id so they get created.
+            return $state_index_id;
+        }
     }
 }
 
@@ -1966,10 +2029,12 @@ function initStats()
             'insert_sec' => 0.0,
             'update' => 0,
             'update_sec' => 0.0,
+            'delete' => 0,
+            'delete_sec' => 0.0,
             'fetchcell' => 0,
             'fetchcell_sec' => 0.0,
-            'fetchcol' => 0,
-            'fetchcol_sec' => 0.0,
+            'fetchcolumn' => 0,
+            'fetchcolumn_sec' => 0.0,
             'fetchrow' => 0,
             'fetchrow_sec' => 0.0,
             'fetchrows' => 0,
@@ -2316,4 +2381,39 @@ function db_schema_is_current()
     $latest = key($schemas);
 
     return $current >= $latest;
+}
+
+
+function postData2api($data,$api,$params='')
+{
+    global $config;
+    $headers = array('Content-Type: application/json', 'Content-Encoding: gzip',);
+    $gziped_xml_content = gzencode($data);
+    //$headers = array('Content-Type: application/json');
+    //$gziped_xml_content = $data;
+    try {
+        //echo 'http://localhost:9999/api/'.$api;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_URL, $config['agent']['host'].$api.'?'.$config['agent']['key'].($params =='' ? '' : ('&'.$params)));//?details
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_TIMEOUT_MS, 10000);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_ENCODING, 'gzip');
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $gziped_xml_content);
+        $res = curl_exec($ch);
+        curl_close($ch);
+        //echo $res;
+        unset($ch);
+        unset($res);
+    } catch (Exception $e) {
+        Log::info("opentsdb error == " . $e->getMessage());
+    } catch (FatalErrorException $e) {
+        Log::info("opentsdb error == " . $e->getMessage());
+    }
+    unset($gziped_xml_content);
+
 }

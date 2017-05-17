@@ -29,6 +29,8 @@ if (key_exists('vrf_lite_cisco', $device) && (count($device['vrf_lite_cisco'])!=
     $vrfs_lite_cisco = array(array('context_name'=>null));
 }
 
+$arr_ports = [];
+
 foreach ($vrfs_lite_cisco as $vrf) {
     $context = $vrf['context_name'];
     $device['context_name']=$context;
@@ -81,6 +83,11 @@ foreach ($vrfs_lite_cisco as $vrf) {
                     'context_name' => $context,
                 );
             }
+
+            array_push($arr_ports,array('mac_address' => $mac
+            ,'port_id' => $port_id
+            ,'ipv4_address' => $ip
+            ,'context_name' => $context));
         }
 
         unset(
@@ -109,6 +116,11 @@ foreach ($vrfs_lite_cisco as $vrf) {
             d_echo(null, '-');
         }
     }
+
+    // remove entries that no longer have an owner
+    dbQuery('DELETE `ipv4_mac` FROM `ipv4_mac` LEFT JOIN `ports`
+ ON `ipv4_mac`.`port_id` = `ports`.`port_id` WHERE `ports`.`port_id` IS NULL');
+
     echo PHP_EOL;
     unset(
         $existing_data,
@@ -121,4 +133,8 @@ foreach ($vrfs_lite_cisco as $vrf) {
         $device['context_name']
     );
 }
+
+postData2api(json_encode($arr_ports),'ipv4_mac','device_id='.$device['device_id']);
+unset($arr_ports);
+
 unset($vrfs_lite_cisco);

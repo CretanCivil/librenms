@@ -170,9 +170,9 @@ if (is_numeric($load_raw[2]['laLoadInt'])) {
         ->addDataset('15min', 'GAUGE', 0, 5000);
 
     $fields = array(
-        '1min'   => $load_raw[1]['laLoadInt'],
-        '5min'   => $load_raw[2]['laLoadInt'],
-        '15min'  => $load_raw[3]['laLoadInt'],
+        '1'   => $load_raw[1]['laLoadInt'],//1min
+        '5'   => $load_raw[2]['laLoadInt'],//5min
+        '15'  => $load_raw[3]['laLoadInt'],//15min
     );
 
     $tags = compact('rrd_def');

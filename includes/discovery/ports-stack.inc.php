@@ -12,6 +12,7 @@ unset(
 
 $stack_poll_array = snmpwalk_cache_twopart_oid($device, 'ifStackStatus', array());
 
+$arr_ports = [];
 foreach ($stack_poll_array as $port_id_high => $entry_high) {
     foreach ($entry_high as $port_id_low => $entry_low) {
         $ifStackStatus = $entry_low['ifStackStatus'];
@@ -28,6 +29,11 @@ foreach ($stack_poll_array as $port_id_high => $entry_high) {
             dbInsert(array('device_id' => $device['device_id'], 'port_id_high' => $port_id_high, 'port_id_low' => $port_id_low, 'ifStackStatus' => $ifStackStatus), 'ports_stack');
             echo '+';
         }
+
+        array_push($arr_ports,array(
+        'port_id_high' => $port_id_high
+        ,'port_id_low' => $port_id_low
+        ,'ifStackStatus' => $ifStackStatus));
     }//end foreach
     unset(
         $port_id_low,
@@ -43,6 +49,9 @@ foreach ($stack_db_array as $port_id_high => $array) {
         echo '-';
     }
 }
+
+postData2api(json_encode($arr_ports),'ports_stack','device_id='.$device['device_id']);
+unset($arr_ports);
 
 echo "\n";
 unset(

@@ -1,8 +1,9 @@
 <?php
 
-global $link_exists;
+global $link_exists,$arr_ports;
 
 $community = $device['community'];
+$arr_ports = [];
 
 if ($device['os'] == 'ironware' && $config['autodiscovery']['xdp'] === true) {
     echo ' Brocade FDP: ';
@@ -286,6 +287,9 @@ foreach (dbFetchRows($sql) as $test) {
         d_echo("$rows deleted ");
     }
 }
+
+postData2api(json_encode($arr_ports),'links','device_id='.$device['device_id']);
+
 
 unset(
     $link_exists,

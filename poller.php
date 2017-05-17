@@ -17,7 +17,7 @@ require __DIR__ . '/includes/init.php';
 $poller_start = microtime(true);
 echo $config['project_name_version']." Poller\n";
 
-$options = getopt('h:m:i:n:r::d::v::a::f::q');
+$options = getopt('h:m:i:n:r::d::v::a::f::q::l');
 
 if ($options['h'] == 'odd') {
     $options['n'] = '1';
@@ -69,6 +69,7 @@ if (!$where) {
     echo "-d                                           Enable debugging output\n";
     echo "-v                                           Enable verbose debugging output\n";
     echo "-m                                           Specify module(s) to be run\n";
+    echo "-l                                           Poll forever\n";
     echo "\n";
     echo "No polling type specified!\n";
     exit;
@@ -118,6 +119,14 @@ if (isset($options['g'])) {
     $config['nographite'] = true;
 }
 
+if (isset($options['l'])) {
+    $config['poll2agent'] = true;
+    $config['norrd'] = true;
+    $config['noinfluxdb'] = true;
+    $config['nographite'] = true;
+}
+
+
 if ($config['noinfluxdb'] !== true && $config['influxdb']['enable'] === true) {
     $influxdb = influxdb_connect();
 } else {
@@ -144,22 +153,71 @@ if (!isset($query)) {
     $query = "SELECT * FROM `devices` WHERE `disabled` = 0 $where ORDER BY `device_id` ASC";
 }
 
-foreach (dbFetch($query) as $device) {
-    if ($device['os_group'] == 'cisco') {
-        $device['vrf_lite_cisco'] = dbFetchRows("SELECT * FROM `vrf_lite_cisco` WHERE `device_id` = " . $device['device_id']);
-    } else {
-        $device['vrf_lite_cisco'] = '';
+if ($config['poll2agent'] !== true) {
+    foreach (dbFetch($query) as $device) {
+        if ($device['os_group'] == 'cisco') {
+            $device['vrf_lite_cisco'] = dbFetchRows("SELECT * FROM `vrf_lite_cisco` WHERE `device_id` = " . $device['device_id']);
+        } else {
+            $device['vrf_lite_cisco'] = '';
+        }
+        poll_device($device, $options);
+        echo "#### Start Alerts ####\n";
+        RunRules($device['device_id']);
+        echo "#### End Alerts ####\r\n";
+        $polled_devices++;
     }
-    poll_device($device, $options);
-    echo "#### Start Alerts ####\n";
-    RunRules($device['device_id']);
-    echo "#### End Alerts ####\r\n";
-    $polled_devices++;
-}
 
-$poller_end  = microtime(true);
-$poller_run  = ($poller_end - $poller_start);
-$poller_time = substr($poller_run, 0, 5);
+    $poller_end = microtime(true);
+    $poller_run = ($poller_end - $poller_start);
+    $poller_time = substr($poller_run, 0, 5);
+
+} else {
+    while (true) {
+        $poller_start = microtime(true);
+        $start_memory = memory_get_usage();
+
+        foreach (dbFetch($query) as $device) {
+            if ($device['os_group'] == 'cisco') {
+                $device['vrf_lite_cisco'] = dbFetchRows("SELECT * FROM `vrf_lite_cisco` WHERE `device_id` = " . $device['device_id']);
+            } else {
+                $device['vrf_lite_cisco'] = '';
+            }
+            poll_device($device, $options);
+            //echo "#### Start Alerts ####\n";
+            //RunRules($device['device_id']);
+            //echo "#### End Alerts ####\r\n";
+            $polled_devices++;
+        }
+
+        $timestamp = time();
+        $arr = [];
+        foreach ($g_metric_data as &$metric) {
+            $metric->timestamp = $timestamp;
+            array_push($arr, $metric);
+            if (count($arr) == 30) {
+                postData2api(json_encode($arr), 'put');
+                $count = 0;
+                $arr = [];
+            }
+        }
+        if (count($arr) > 0) {
+            postData2api(json_encode($arr), 'put');
+            $arr = [];
+        }
+
+
+        $g_metric_data = [];
+
+        $poller_end = microtime(true);
+        $poller_run = ($poller_end - $poller_start);
+        $poller_time = substr($poller_run, 0, 5);
+        $module_mem = (memory_get_usage() - $start_memory);
+
+        printf("\n>> %sf seconds with %s bytes  will wait %s\n", $poller_time, $module_mem, (5 - $poller_time));
+
+        sleep(5 - $poller_time);
+    }
+}
 
 if ($graphite !== false) {
     fclose($graphite);

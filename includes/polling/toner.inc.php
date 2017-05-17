@@ -16,6 +16,7 @@ foreach ($toner_data as $toner) {
         'rrd_name'    => array('toner', $toner['toner_index']),
         'rrd_oldname' => array('toner', $toner['toner_descr']),
         'index'       => $toner['toner_index'],
+        'descr'       => $toner['toner_descr'],
     );
     data_update($device, 'toner', $tags, $tonerperc);
 

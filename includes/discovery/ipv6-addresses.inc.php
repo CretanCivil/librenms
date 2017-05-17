@@ -5,6 +5,11 @@ if (key_exists('vrf_lite_cisco', $device) && (count($device['vrf_lite_cisco'])!=
 } else {
     $vrfs_lite_cisco = array(array('context_name'=>null));
 }
+
+global  $arr_ipv6_network,$arr_ipv6_addresses;
+$arr_ipv6_network = [];
+$arr_ipv6_addresses = [];
+
 foreach ($vrfs_lite_cisco as $vrf) {
     $device['context_name']=$vrf['context_name'];
 
@@ -65,15 +70,17 @@ foreach ($vrfs_lite_cisco as $vrf) {
         } //end foreach
     } //end if
 
-    $sql = "SELECT * FROM ipv6_addresses AS A, ports AS I WHERE I.device_id = '".$device['device_id']."' AND  A.port_id = I.port_id";
-
-    foreach (dbFetchRows($sql) as $row) {
+    $sql = 'SELECT `ipv6_addresses`.*, `ports`.`device_id`, `ports`.`ifIndex` FROM `ipv6_addresses`';
+    $sql .= ' LEFT JOIN `ports` ON `ipv6_addresses`.`port_id` = `ports`.`port_id`';
+    $sql .= ' WHERE `ports`.device_id = ? OR `ports`.`device_id` IS NULL';
+    foreach (dbFetchRows($sql, array($device['device_id'])) as $row) {
         $full_address  = $row['ipv6_address'].'/'.$row['ipv6_prefixlen'];
         $port_id       = $row['port_id'];
         $valid_address = $full_address.'-'.$port_id;
         if (!$valid['ipv6'][$valid_address]) {
             echo '-';
             $query = dbDelete('ipv6_addresses', '`ipv6_address_id` = ?', array($row['ipv6_address_id']));
+            array_push($arr_ipv6_addresses,array('ipv6_address_id' => $row['ipv6_address_id'],'action' => 'delete'));
             if (!dbFetchCell('SELECT COUNT(*) FROM `ipv6_addresses` WHERE `ipv6_network_id` = ?', array($row['ipv6_network_id']))) {
                 $query = dbDelete('ipv6_networks', '`ipv6_network_id` = ?', array($row['ipv6_network_id']));
             }
@@ -83,4 +90,9 @@ foreach ($vrfs_lite_cisco as $vrf) {
     echo "\n";
     unset($device['context_name']);
 }
+
+postData2api(json_encode($arr_ipv6_network),'ipv6_networks','device_id='.$device['device_id']);
+postData2api(json_encode($arr_ipv6_addresses),'ipv6_addresses','device_id='.$device['device_id']);
+unset($arr_ipv6_network);
+unset($arr_ipv6_addresses);
 unset($vrfs_c);

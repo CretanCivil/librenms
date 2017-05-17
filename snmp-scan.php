@@ -99,18 +99,22 @@ function perform_snmp_scan($net, $force_network, $force_broadcast)
             }
             continue;
         }
-        if (ip_exists($host)) {
-            $stats['known']++;
-            if ($vdebug || $more_info === true) {
-                echo "Known Device $host".PHP_EOL;
-            } else {
-                echo '*';
+
+        if($config['host_dynamic_ip'] != true) {
+            if (ip_exists($host)) {
+                $stats['known']++;
+                if ($vdebug || $more_info === true) {
+                    echo "Known Device $host".PHP_EOL;
+                } else {
+                    echo '*';
+                }
+                continue;
             }
-            continue;
         }
-        foreach (array('udp','tcp') as $transport) {
+
+        foreach ($config['autoscan']['snmp']['transports'] as $transport) {
             try {
-                addHost(gethostbyaddr($host), '', $config['snmp']['port'], $transport, $config['distributed_poller_group']);
+                addHost(gethostbyaddr($host), $config['autoscan']['snmp']['version'], $config['snmp']['port'], $transport, $config['distributed_poller_group']);
                 $stats['added']++;
                 if ($vdebug || $more_info === true) {
                     echo "Added Device $host".PHP_EOL.PHP_EOL;

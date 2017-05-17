@@ -33,6 +33,8 @@ foreach (dbFetchRows('SELECT * FROM storage WHERE device_id = ?', array($device[
     $fields = array(
         'used'   => $storage['used'],
         'free'   => $storage['free'],
+        'total'   => $storage['size'],
+        'in_use'   => $storage['used'] / $storage['size'],
     );
 
     $tags = compact('mib', 'descr', 'rrd_name', 'rrd_def');

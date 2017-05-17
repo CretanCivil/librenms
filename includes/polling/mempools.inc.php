@@ -7,6 +7,7 @@ foreach (dbFetchRows('SELECT * FROM mempools WHERE device_id = ?', array($device
 
     $mempool_type = $mempool['mempool_type'];
     $mempool_index = $mempool['mempool_index'];
+    $mempool_descr = $mempool['mempool_descr'];
 
     $file = $config['install_dir'].'/includes/polling/mempools/'. $mempool_type .'.inc.php';
     if (is_file($file)) {
@@ -29,9 +30,12 @@ foreach (dbFetchRows('SELECT * FROM mempools WHERE device_id = ?', array($device
     $fields = array(
         'used' => $mempool['used'],
         'free' => $mempool['free'],
+        'pct_used' => $mempool['used'] / $mempool['total'],
+        'pct_usabe' => $mempool['free'] / $mempool['total'],
+        'total' => $mempool['total'],
     );
 
-    $tags = compact('mempool_type', 'mempool_index', 'rrd_name', 'rrd_def');
+    $tags = compact('mempool_type', 'mempool_index', 'rrd_name', 'rrd_def', 'mempool_descr');
     data_update($device, 'mempool', $tags, $fields);
 
     $mempool['state'] = array(
