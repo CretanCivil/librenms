@@ -200,6 +200,10 @@ if ($config['poll2agent'] !== true) {
                 }*/
             }
             if (count($arr) > 0) {
+                /*if(json_encode($arr) == false) {
+                    var_dump($arr);
+                    die();
+                }*/
                 postData2api(json_encode($arr), 'metrics', 'device_id='.$device['device_id']);
                 $arr = [];
             }

@@ -68,13 +68,16 @@ function data_update($device, $measurement, $tags, $fields)
         //$tags['uid'] = '20';
 
         foreach($tags as &$value) {
-            $value = preg_replace("/[^\x{4e00}-\x{9fa5}A-Za-z0-9\.\-\/\xC2\xA0]/u","",$value);
+            if(is_array($value)) {
+                $value = implode($value,'_');;
+            }
+            $value = preg_replace("/[^\x{4e00}-\x{9fa5}A-Za-z0-9\.\_\-\/\xC2\xA0]/u","",$value);
         }
         $measurement = $measurement;//"snmp.".
 
 
         if (!is_array($fields)) {
-            if ($fields != null && floatval($fields) !== null && !is_nan($fields)) {
+            if ($fields != null && floatval($fields) !== null && !is_nan($fields) && !is_infinite($fields)) {
                 $point = new stdClass();
                 $point->metric = $measurement;
                 $point->tags = $tags;
@@ -85,7 +88,7 @@ function data_update($device, $measurement, $tags, $fields)
         } else {
             foreach ($fields as $k => $v) {
 
-                if (floatval($v) !== null && $v != null && !is_nan($v)) {
+                if (floatval($v) !== null && $v != null && !is_nan($v) && !is_infinite($v)) {
                     $point = new stdClass();
                     $point->metric = $measurement.".".$k;
                     $point->tags = $tags;
