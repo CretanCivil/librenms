@@ -187,26 +187,28 @@ if ($config['poll2agent'] !== true) {
             //RunRules($device['device_id']);
             //echo "#### End Alerts ####\r\n";
             $polled_devices++;
-        }
 
-        $timestamp = time();
-        $arr = [];
-        foreach ($g_metric_data as &$metric) {
-            $metric->timestamp = $timestamp;
-            array_push($arr, $metric);
-            if (count($arr) == 30) {
-                postData2api(json_encode($arr), 'put');
-                $count = 0;
+            $timestamp = time();
+            $arr = [];
+            foreach ($g_metric_data as &$metric) {
+                $metric->timestamp = $timestamp;
+                array_push($arr, $metric);
+                if (count($arr) == 30) {
+                    postData2api(json_encode($arr), 'metrics', 'device_id='.$device['device_id']);
+                    $count = 0;
+                    $arr = [];
+                }
+            }
+            if (count($arr) > 0) {
+                postData2api(json_encode($arr), 'metrics', 'device_id='.$device['device_id']);
                 $arr = [];
             }
-        }
-        if (count($arr) > 0) {
-            postData2api(json_encode($arr), 'put');
-            $arr = [];
+
+
+            $g_metric_data = [];
         }
 
 
-        $g_metric_data = [];
 
         $poller_end = microtime(true);
         $poller_run = ($poller_end - $poller_start);
@@ -215,7 +217,7 @@ if ($config['poll2agent'] !== true) {
 
         printf("\n>> %sf seconds with %s bytes  will wait %s\n", $poller_time, $module_mem, (5 - $poller_time));
 
-        sleep(5 - $poller_time);
+        sleep(6 - $poller_time);
     }
 }
 
