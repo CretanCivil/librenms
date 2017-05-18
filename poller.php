@@ -193,11 +193,11 @@ if ($config['poll2agent'] !== true) {
             foreach ($g_metric_data as &$metric) {
                 $metric->timestamp = $timestamp;
                 array_push($arr, $metric);
-                if (count($arr) == 30) {
+                /*if (count($arr) == 30) {
                     postData2api(json_encode($arr), 'metrics', 'device_id='.$device['device_id']);
                     $count = 0;
                     $arr = [];
-                }
+                }*/
             }
             if (count($arr) > 0) {
                 postData2api(json_encode($arr), 'metrics', 'device_id='.$device['device_id']);
