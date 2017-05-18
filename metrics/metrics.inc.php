@@ -24,6 +24,14 @@ $metrics_name_map['uptime'] = 'system.uptime';
 
 $metrics_name_map['toner'] = 'system.printer.toner';
 
+$metrics_name_map['netstats-icmp'] = 'system.net.icmp';
+$metrics_name_map['netstats-ip'] = 'system.net.ip';
+$metrics_name_map['netstats-ip_forward'] = 'system.net.ip.forward';
+$metrics_name_map['netstats-snmp'] = 'system.net.snmp';
+$metrics_name_map['netstats-tcp'] = 'system.net.tcp';
+$metrics_name_map['netstats-udp'] = 'system.net.udp';
+
+
 if(isset($metrics_name_map[$measurement])) {
     $measurement = $metrics_name_map[$measurement];
 }

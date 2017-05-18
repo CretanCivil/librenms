@@ -2396,7 +2396,7 @@ function postData2api($data,$api,$params='')
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_HEADER, 0);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_URL, $config['agent']['host'].$api.'?'.$config['agent']['key'].($params =='' ? '' : ('&'.$params)));//?details
+        curl_setopt($ch, CURLOPT_URL, $config['agent']['host'].$api.'?api_key='.$config['agent']['key'].($params =='' ? '' : ('&'.$params)));//?details
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
         curl_setopt($ch, CURLOPT_TIMEOUT_MS, 10000);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
