@@ -74,7 +74,7 @@ function data_update($device, $measurement, $tags, $fields)
 
 
         if (!is_array($fields)) {
-            if (floatval($fields) !== null) {
+            if ($fields != null && floatval($fields) !== null && !is_nan($fields)) {
                 $point = new stdClass();
                 $point->metric = $measurement;
                 $point->tags = $tags;
@@ -85,7 +85,7 @@ function data_update($device, $measurement, $tags, $fields)
         } else {
             foreach ($fields as $k => $v) {
 
-                if (floatval($v) !== null) {
+                if (floatval($v) !== null && $v != null && !is_nan($v)) {
                     $point = new stdClass();
                     $point->metric = $measurement.".".$k;
                     $point->tags = $tags;

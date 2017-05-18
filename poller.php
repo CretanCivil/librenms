@@ -217,7 +217,7 @@ if ($config['poll2agent'] !== true) {
 
         printf("\n>> %sf seconds with %s bytes  will wait %s\n", $poller_time, $module_mem, (5 - $poller_time));
 
-        sleep(6 - $poller_time);
+        sleep(10 - $poller_time);
     }
 }
 
