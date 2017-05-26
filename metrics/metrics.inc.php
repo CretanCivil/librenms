@@ -31,6 +31,7 @@ $metrics_name_map['netstats-snmp'] = 'system.net.snmp';
 $metrics_name_map['netstats-tcp'] = 'system.net.tcp';
 $metrics_name_map['netstats-udp'] = 'system.net.udp';
 
+$metrics_name_map['ports'] = 'device.ports';
 
 if(isset($metrics_name_map[$measurement])) {
     $measurement = $metrics_name_map[$measurement];

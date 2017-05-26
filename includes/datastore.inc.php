@@ -37,6 +37,58 @@ function rrd_array_filter($arr)
 } // rrd_array_filter
 
 
+function data_to_agent($device, $measurement, $tags, $fields)
+{
+
+    global $g_metric_data, $config;
+    if (!$config['poll2agent']) {
+        return;
+    }
+    $pattern = $config['install_dir'] . '/metrics/*.inc.php';
+    foreach (glob($pattern) as $file) {
+        include $file;
+    }
+    unset($tags['rrd_def']);
+    unset($tags['rrd_name']);
+    //unset($tags['mib']);
+
+    //$tags['host'] = 'snmp70';
+    //$tags['uid'] = '20';
+
+    foreach ($tags as &$value) {
+        if (is_array($value)) {
+            $value = implode($value, '_');;
+        }
+        $value = preg_replace("/[^\x{4e00}-\x{9fa5}A-Za-z0-9\.\_\-\/\xC2\xA0]/u", "", $value);
+    }
+    $measurement = $measurement;//"snmp.".
+
+
+    if (!is_array($fields)) {
+        if ($fields != null && floatval($fields) !== null && !is_nan($fields) && !is_infinite($fields)) {
+            $point = new stdClass();
+            $point->metric = $measurement;
+            $point->tags = $tags;
+            $point->value = floatval($fields);
+
+            array_push($g_metric_data, $point);
+        }
+    } else {
+        foreach ($fields as $k => $v) {
+
+            if (floatval($v) !== null && $v != null && !is_nan($v) && !is_infinite($v)) {
+                $point = new stdClass();
+                $point->metric = $measurement . "." . $k;
+                $point->tags = $tags;
+                $point->value = floatval($v);
+
+                array_push($g_metric_data, $point);
+            }
+        }
+    }
+
+}
+
 /**
  * Datastore-independent function which should be used for all polled metrics.
  *
@@ -54,56 +106,10 @@ function rrd_array_filter($arr)
  */
 function data_update($device, $measurement, $tags, $fields)
 {
-    global $g_metric_data,$config;
-    if($config['poll2agent']) {
-        $pattern = $config['install_dir'] . '/metrics/*.inc.php';
-        foreach (glob($pattern) as $file) {
-            include $file;
-        }
-        unset($tags['rrd_def']);
-        unset($tags['rrd_name']);
-        //unset($tags['mib']);
-
-        //$tags['host'] = 'snmp70';
-        //$tags['uid'] = '20';
-
-        foreach($tags as &$value) {
-            if(is_array($value)) {
-                $value = implode($value,'_');;
-            }
-            $value = preg_replace("/[^\x{4e00}-\x{9fa5}A-Za-z0-9\.\_\-\/\xC2\xA0]/u","",$value);
-        }
-        $measurement = $measurement;//"snmp.".
-
-
-        if (!is_array($fields)) {
-            if ($fields != null && floatval($fields) !== null && !is_nan($fields) && !is_infinite($fields)) {
-                $point = new stdClass();
-                $point->metric = $measurement;
-                $point->tags = $tags;
-                $point->value = floatval($fields);
-
-                array_push($g_metric_data,$point);
-            }
-        } else {
-            foreach ($fields as $k => $v) {
-
-                if (floatval($v) !== null && $v != null && !is_nan($v) && !is_infinite($v)) {
-                    $point = new stdClass();
-                    $point->metric = $measurement.".".$k;
-                    $point->tags = $tags;
-                    $point->value = floatval($v);
-
-                    array_push($g_metric_data,$point);
-                }
-            }
-        }
-
-        return;
+    global $g_metric_data, $config;
+    if ($config['poll2agent']) {
+        return data_to_agent($device, $measurement, $tags, $fields);
     }
-
-
-
     // convenience conversion to allow calling with a single value, so, e.g., these are equivalent:
     // data_update($device, 'mymeasurement', $tags, 1234);
     //     AND

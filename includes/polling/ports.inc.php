@@ -743,6 +743,9 @@ foreach ($ports as $port) {
         influx_update($device, 'ports', rrd_array_filter($tags), $fields);
         graphite_update($device, 'ports|' . $ifName, $tags, $fields);
 
+        unset($tags["port_descr_type"]);
+        $tags["ifAlias"] = $this_port['ifAlias'];
+        data_to_agent($device, 'ports',$tags, $fields);
         // End Update IF-MIB
         // Update PAgP
         if ($this_port['pagpOperationMode'] || $port['pagpOperationMode']) {
