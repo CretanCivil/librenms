@@ -373,7 +373,8 @@ function poll_device($device, $options)
                 'features' => isset($features) ? $features : '',
                 'hardware' => isset($hardware) ? $hardware : '',
                 'serial' => isset($serial) ? $serial : '',
-                'sysObjectID' => isset($poll_device['sysObjectID']) ? $poll_device['sysObjectID'] : ''
+                'sysObjectID' => isset($poll_device['sysObjectID']) ? $poll_device['sysObjectID'] : '',
+                'deviceType' => isset($device['type']) ? $device['type'] : ''
             ];
             postData2api(json_encode($post_data),'device_poller','device_id='.$device['device_id']);
             echo "UPDATED!\n";
