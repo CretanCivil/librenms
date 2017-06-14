@@ -245,6 +245,9 @@ function snmp_get($device, $oid, $options = null, $mib = null, $mibdir = null)
     }
 
     $cmd = gen_snmpget_cmd($device, $oid, $options, $mib, $mibdir);
+    if($oid == "sysName.0"){
+        error_log($oid . "==gen_snmpget_cmd ===== " . $cmd ."\r\n", 3, "/opt/librenms/logs/my-errors.log");
+    }
     $data = trim(external_exec($cmd));
 
     recordSnmpStatistic('snmpget', $time_start);

@@ -709,6 +709,7 @@ function createHost(
     global $config;
 
     $host = trim(strtolower($host));
+    $snmphost = trim(strtolower($snmphost));
 
     $poller_group=getpollergroup($poller_group);
 
@@ -740,23 +741,31 @@ function createHost(
 
 
     if($config['host_dynamic_ip'] == true) {//动态ip
-        $device_id = dbFetchRow('SELECT device_id  FROM devices WHERE sysName = ?', array($snmphost),true);
-        if($device_id) {
-            dbUpdate($device,'devices','device_id = ?',array($device_id));
-            $device['device_id'] = $device_id['device_id'];
-            postData2api(json_encode($device),'device');
-            return $device_id;
-        } else {
-            $device_id = dbInsert($device, 'devices');
-            if ($device_id) {
-                oxidized_reload_nodes();
-                $device['device_id'] = $device_id;
+        error_log("device_snmphost === " . $snmphost ."\r\n", 3, "/opt/librenms/logs/my-errors.log");
+        if(empty($snmphost)){
+            throw new \Exception("Failed to get sysName");
+        }else{
+            $device_id = dbFetchRow('SELECT device_id  FROM devices WHERE sysName = ?', array($snmphost),true);
+            if($device_id) {
+                error_log("device_update ===== " . json_encode($device) . "\r\n", 3, "/opt/librenms/logs/my-errors.log");
+                dbUpdate($device,'devices','device_id = ?',array($device_id['device_id']));
+                $device['device_id'] = $device_id['device_id'];
                 postData2api(json_encode($device),'device');
                 return $device_id;
-            }
+            } else {
+                error_log("device_insert ===== " . json_encode($device) . "\r\n", 3, "/opt/librenms/logs/my-errors.log");
+                $device_id = dbInsert($device, 'devices');
+                if ($device_id) {
+                    oxidized_reload_nodes();
+                    $device['device_id'] = $device_id;
+                    postData2api(json_encode($device),'device');
+                    return $device_id;
+                }
 
-            throw new \Exception("Failed to add host to the database, please run ./validate.php");
+                throw new \Exception("Failed to add host to the database, please run ./validate.php");
+            }
         }
+
     } else {
         if (host_exists($host, $snmphost)) {
             $device_id = dbFetchRow('SELECT device_id  FROM devices WHERE hostname = ?', array($host),true);
