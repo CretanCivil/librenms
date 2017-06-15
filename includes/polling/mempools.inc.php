@@ -26,13 +26,23 @@ foreach (dbFetchRows('SELECT * FROM mempools WHERE device_id = ?', array($device
     $rrd_def = RrdDefinition::make()
         ->addDataset('used', 'GAUGE', 0)
         ->addDataset('free', 'GAUGE', 0);
-
-    $fields = array(
+    //转mb
+    $uesed = $mempool['used']/(1024 * 1024);
+    $free = $mempool['free']/(1024 * 1024);
+    $total = $mempool['total']/(1024 * 1024);
+    /*$fields = array(
         'used' => $mempool['used'],
         'free' => $mempool['free'],
         'pct_used' => $mempool['used'] / $mempool['total'],
         'pct_usabe' => $mempool['free'] / $mempool['total'],
         'total' => $mempool['total'],
+    );*/
+    $fields = array(
+        'used' => $uesed,
+        'free' => $free,
+        'pct_used' => $uesed / $total,
+        'pct_usabe' => $free / $total,
+        'total' => $total,
     );
 
     $tags = compact('mempool_type', 'mempool_index', 'rrd_name', 'rrd_def', 'mempool_descr');

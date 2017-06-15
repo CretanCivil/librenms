@@ -29,7 +29,10 @@ foreach (dbFetchRows('SELECT * FROM storage WHERE device_id = ?', array($device[
     }
 
     echo $percent.'% ';
-
+    //采集数据的单位Bytes 单位转换为 kb / 1024
+    $storage['used'] = $storage['used']/1024;
+    $storage['free'] = $storage['free']/1024;
+    $storage['size'] = $storage['size']/1024;
     $fields = array(
         'used'   => $storage['used'],
         'free'   => $storage['free'],
