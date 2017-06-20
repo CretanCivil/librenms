@@ -28,8 +28,10 @@ use LibreNMS\RRD\RrdDefinition;
 // UCD-SNMP-MIB::ssCpuRawSoftIRQ.0 = Counter32: 2605010
 // UCD-SNMP-MIB::ssRawSwapIn.0 = Counter32: 602002
 // UCD-SNMP-MIB::ssRawSwapOut.0 = Counter32: 937422
+error_log("UCD-SNMP-MIB-device === " . json_encode($device) ."\r\n", 3, "/opt/librenms/logs/my-errors.log");
 $ss = snmpwalk_cache_oid($device, 'systemStats', array(), 'UCD-SNMP-MIB');
 $ss = $ss[0];
+error_log("UCD-SNMP-MIB-ss === " . json_encode($ss) ."\r\n", 3, "/opt/librenms/logs/my-errors.log");
 
 if (is_numeric($ss['ssCpuRawUser']) && is_numeric($ss['ssCpuRawNice']) && is_numeric($ss['ssCpuRawSystem']) && is_numeric($ss['ssCpuRawIdle'])) {
     $rrd_def = RrdDefinition::make()
@@ -44,6 +46,7 @@ if (is_numeric($ss['ssCpuRawUser']) && is_numeric($ss['ssCpuRawNice']) && is_num
     $system = ($ss['ssCpuRawSystem'] / $total) * 100;
     $nice = ($ss['ssCpuRawNice'] / $total) * 100;
     $idle = ($ss['ssCpuRawIdle'] / $total) * 100;
+    $iowait = ($ss['ssCpuRawWait'] / $total) * 100;
     /*$fields = array(
         'user'    => $ss['ssCpuRawUser'],
         'system'  => $ss['ssCpuRawSystem'],
@@ -55,6 +58,7 @@ if (is_numeric($ss['ssCpuRawUser']) && is_numeric($ss['ssCpuRawNice']) && is_num
         'system'  => $system,
         'nice'    => $nice,
         'idle'    => $idle,
+        'iowait'    => $iowait,
     );
 
     $tags = compact('rrd_def');
