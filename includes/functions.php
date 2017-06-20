@@ -767,6 +767,8 @@ function createHost(
         }
 
     } else {
+        error_log("insert_device_by_hostname " . $host . "xxxxxxxxxxxxx sysName" . $snmphost ."\r\n", 3, "/opt/librenms/logs/my-errors.log");
+        return false;
         if (host_exists($host, $snmphost)) {
             $device_id = dbFetchRow('SELECT device_id  FROM devices WHERE hostname = ?', array($host),true);
             $device['device_id'] = $device_id['device_id'];

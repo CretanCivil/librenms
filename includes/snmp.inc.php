@@ -370,7 +370,6 @@ function snmp_cache_ifIndex($device)
 
 function snmpwalk_cache_oid($device, $oid, $array, $mib = null, $mibdir = null, $snmpflags = '-OQUs')
 {
-    error_log("snmpwalk_cache_oid_mib === " . $mib ."\r\n", 3, "/opt/librenms/logs/my-errors.log");
     $data = snmp_walk($device, $oid, $snmpflags, $mib, $mibdir);
     foreach (explode("\n", $data) as $entry) {
         list($oid,$value)  = explode('=', $entry, 2);
