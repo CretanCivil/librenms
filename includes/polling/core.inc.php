@@ -18,7 +18,7 @@ unset($poll_device);
 
 $snmpdata = snmp_get_multi($device, 'sysUpTime.0 sysLocation.0 sysContact.0 sysName.0 sysObjectID.0', '-OQnUst', 'SNMPv2-MIB:HOST-RESOURCES-MIB:SNMP-FRAMEWORK-MIB');
 $poll_device = $snmpdata[0];
-$poll_device['sysName'] = strtolower($poll_device['sysName']);
+$poll_device['sysName'] = trim(strtolower($poll_device['sysName']));
 
 $poll_device['sysDescr'] = snmp_get($device, 'sysDescr.0', '-OvQ', 'SNMPv2-MIB:HOST-RESOURCES-MIB:SNMP-FRAMEWORK-MIB');
 

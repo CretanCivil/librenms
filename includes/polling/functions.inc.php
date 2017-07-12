@@ -368,6 +368,15 @@ function poll_device($device, $options)
 
         $updated = dbUpdate($update_array, 'devices', '`device_id` = ?', array($device['device_id']));
         if ($updated) {
+            $post_data = [
+                'version' => isset($version) ? $version :'',
+                'features' => isset($features) ? $features : '',
+                'hardware' => isset($hardware) ? $hardware : '',
+                'serial' => isset($serial) ? $serial : '',
+                'sysObjectID' => isset($poll_device['sysObjectID']) ? $poll_device['sysObjectID'] : '',
+                'deviceType' => isset($device['type']) ? $device['type'] : ''
+            ];
+            postData2api(json_encode($post_data),'device_poller','device_id='.$device['device_id']);
             echo "UPDATED!\n";
         }
 

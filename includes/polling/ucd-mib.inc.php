@@ -28,8 +28,10 @@ use LibreNMS\RRD\RrdDefinition;
 // UCD-SNMP-MIB::ssCpuRawSoftIRQ.0 = Counter32: 2605010
 // UCD-SNMP-MIB::ssRawSwapIn.0 = Counter32: 602002
 // UCD-SNMP-MIB::ssRawSwapOut.0 = Counter32: 937422
+error_log("UCD-SNMP-MIB-device === " . json_encode($device) ."\r\n", 3, "/opt/librenms/logs/my-errors.log");
 $ss = snmpwalk_cache_oid($device, 'systemStats', array(), 'UCD-SNMP-MIB');
 $ss = $ss[0];
+error_log("UCD-SNMP-MIB-ss === " . json_encode($ss) ."\r\n", 3, "/opt/librenms/logs/my-errors.log");
 
 if (is_numeric($ss['ssCpuRawUser']) && is_numeric($ss['ssCpuRawNice']) && is_numeric($ss['ssCpuRawSystem']) && is_numeric($ss['ssCpuRawIdle'])) {
     $rrd_def = RrdDefinition::make()
@@ -38,11 +40,25 @@ if (is_numeric($ss['ssCpuRawUser']) && is_numeric($ss['ssCpuRawNice']) && is_num
         ->addDataset('nice', 'COUNTER', 0)
         ->addDataset('idle', 'COUNTER', 0);
 
-    $fields = array(
+    $total = $ss['ssCpuRawUser'] + $ss['ssCpuRawSystem'] + $ss['ssCpuRawNice'] + $ss['ssCpuRawIdle'];
+
+    $user = ($ss['ssCpuRawUser'] / $total) * 100;
+    $system = ($ss['ssCpuRawSystem'] / $total) * 100;
+    $nice = ($ss['ssCpuRawNice'] / $total) * 100;
+    $idle = ($ss['ssCpuRawIdle'] / $total) * 100;
+    $iowait = ($ss['ssCpuRawWait'] / $total) * 100;
+    /*$fields = array(
         'user'    => $ss['ssCpuRawUser'],
         'system'  => $ss['ssCpuRawSystem'],
         'nice'    => $ss['ssCpuRawNice'],
         'idle'    => $ss['ssCpuRawIdle'],
+    );*/
+    $fields = array(
+        'user'    => $user,
+        'system'  => $system,
+        'nice'    => $nice,
+        'idle'    => $idle,
+        'iowait'    => $iowait,
     );
 
     $tags = compact('rrd_def');
@@ -137,16 +153,16 @@ if (is_numeric($memTotalReal) && is_numeric($memAvailReal) && is_numeric($memTot
         ->addDataset('shared', 'GAUGE', 0, 10000000000)
         ->addDataset('buffered', 'GAUGE', 0, 10000000000)
         ->addDataset('cached', 'GAUGE', 0, 10000000000);
-
+    //kb 转 mb
     $fields = array(
-        'totalswap'    => $memTotalSwap,
-        'availswap'    => $memAvailSwap,
-        'totalreal'    => $memTotalReal,
-        'availreal'    => $memAvailReal,
-        'totalfree'    => $memTotalFree,
-        'shared'       => $memShared,
-        'buffered'     => $memBuffer,
-        'cached'       => $memCached,
+        'totalswap'    => $memTotalSwap/1024,
+        'availswap'    => $memAvailSwap/1024,
+        'totalreal'    => $memTotalReal/1024,
+        'availreal'    => $memAvailReal/1024,
+        'totalfree'    => $memTotalFree/1024,
+        'shared'       => $memShared/1024,
+        'buffered'     => $memBuffer/1024,
+        'cached'       => $memCached/1024,
     );
 
     $tags = compact('rrd_def');
