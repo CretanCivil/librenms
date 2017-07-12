@@ -245,9 +245,6 @@ function snmp_get($device, $oid, $options = null, $mib = null, $mibdir = null)
     }
 
     $cmd = gen_snmpget_cmd($device, $oid, $options, $mib, $mibdir);
-    if($oid == "sysName.0"){
-        error_log($oid . "==gen_snmpget_cmd ===== " . $cmd ."\r\n", 3, "/opt/librenms/logs/my-errors.log");
-    }
     $data = trim(external_exec($cmd));
 
     recordSnmpStatistic('snmpget', $time_start);
@@ -287,9 +284,6 @@ function snmp_walk($device, $oid, $options = null, $mib = null, $mibdir = null)
     $time_start = microtime(true);
 
     $cmd = gen_snmpwalk_cmd($device, $oid, $options, $mib, $mibdir);
-    if($mib == 'UCD-SNMP-MIB'){
-        error_log("snmp_walk_cmd === " . $cmd ."\r\n", 3, "/opt/librenms/logs/my-errors.log");
-    }
     $data = trim(external_exec($cmd));
 
     $data = str_replace('"', '', $data);
