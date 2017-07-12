@@ -766,8 +766,7 @@ function createHost(
             }
         }
 
-    } else {
-
+    } else { 
         if (host_exists($host, $snmphost)) {
             $device_id = dbFetchRow('SELECT device_id  FROM devices WHERE hostname = ?', array($host),true);
             $device['device_id'] = $device_id['device_id'];
