@@ -751,7 +751,7 @@ function createHost(
                 dbUpdate($device,'devices','device_id = ?',array($device_id['device_id']));
                 $device['device_id'] = $device_id['device_id'];
                 postData2api(json_encode($device),'device');
-                return $device_id;
+                return $device['device_id'];
             } else {
                 error_log("device_insert ===== " . json_encode($device) . "\r\n", 3, "/opt/librenms/logs/my-errors.log");
                 $device_id = dbInsert($device, 'devices');

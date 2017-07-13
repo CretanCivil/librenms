@@ -59,6 +59,8 @@ if (is_numeric($ss['ssCpuRawUser']) && is_numeric($ss['ssCpuRawNice']) && is_num
         'nice'    => $nice,
         'idle'    => $idle,
         'iowait'    => $iowait,
+        'ssRawSwapIn'    => $ss['ssRawSwapIn'],
+        'ssRawSwapOut'    => $ss['ssRawSwapOut'],
     );
 
     $tags = compact('rrd_def');
