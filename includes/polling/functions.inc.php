@@ -283,7 +283,7 @@ function poll_device($device, $options)
                 $fields = array(
                     'poller' => $module_time,
                 );
-                data_update($device, 'poller-perf', $tags, $fields);
+                //data_update($device, 'poller-perf', $tags, $fields);
 
                 // remove old rrd
                 $oldrrd = rrd_name($device['hostname'], array('poller', $module, 'perf'));
@@ -340,7 +340,7 @@ function poll_device($device, $options)
                 'poller' => $device_time,
             );
 
-            data_update($device, 'poller-perf', $tags, $fields);
+            //data_update($device, 'poller-perf', $tags, $fields);
         }
 
         // Ping response
@@ -355,7 +355,7 @@ function poll_device($device, $options)
             $update_array['last_ping']             = array('NOW()');
             $update_array['last_ping_timetaken']   = $response['ping_time'];
 
-            data_update($device, 'ping-perf', $tags, $fields);
+            //data_update($device, 'ping-perf', $tags, $fields);
         }
 
         $update_array['last_polled']           = array('NOW()');
