@@ -207,9 +207,11 @@ if ($config['poll2agent'] !== true) {
                 postData2api(json_encode($arr), 'metrics', 'device_id='.$device['device_id']);
                 $arr = [];
             }
-
+            postData2api(json_encode($g_metric_check), 'metrics_check', 'device_id='.$device['device_id']);
 
             $g_metric_data = [];
+            $g_metric_check = [];
+            $g_metric_service = [];
         }
 
 

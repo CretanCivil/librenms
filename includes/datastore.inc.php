@@ -40,7 +40,7 @@ function rrd_array_filter($arr)
 function data_to_agent($device, $measurement, $tags, $fields)
 {
 
-    global $g_metric_data, $config;
+    global $g_metric_service,$g_metric_check,$g_metric_data, $config;
     if (!$config['poll2agent']) {
         return;
     }
@@ -63,6 +63,17 @@ function data_to_agent($device, $measurement, $tags, $fields)
     }
     $measurement = $measurement;//"snmp.".
 
+    $m_service = explode('.',$measurement);
+    if(!in_array($m_service[0],$g_metric_service)){
+        $std = new stdClass();
+        $std->status = 0;
+        $std->tags = ["check:".$m_service[0]];
+        $std->timestamp = time();
+        $std->check = "datadog.agent.check_status";
+        $std->message = null;
+        array_push($g_metric_service,$m_service[0]);
+        array_push($g_metric_check,$std);
+    }
 
     if (!is_array($fields)) {
         if ($fields != null && floatval($fields) !== null && !is_nan($fields) && !is_infinite($fields)) {
