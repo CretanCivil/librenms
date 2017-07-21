@@ -147,10 +147,6 @@ if ($config['nographite'] !== true && $config['graphite']['enable'] === true) {
 
 rrdtool_initialize();
 
-$tags = ["poller" => $config['agent_host']];
-$agent_status = 1;
-data_to_agent([], 'poller.up', $tags, $agent_status);
-
 echo "Starting polling run:\n\n";
 $polled_devices = 0;
 if (!isset($query)) {
@@ -216,8 +212,18 @@ if ($config['poll2agent'] !== true) {
             $g_metric_data = [];
             $g_metric_check = [];
             $g_metric_service = [];
-        }
 
+
+            $point = new stdClass();
+            $point->metric = 'poller.up';
+            $point->timestamp = $timestamp;
+            $point->value = 1;
+            $point->tags = new stdClass();
+            $point->tags->poller = $config['agent_host'];
+            $pol_arr = [];
+            array_push($pol_arr, $point);
+            postData2api(json_encode($pol_arr), 'metrics','poller_up=poller_up&device_id='.$device['device_id']);
+        }
 
 
         $poller_end = microtime(true);
