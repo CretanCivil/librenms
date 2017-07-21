@@ -220,6 +220,7 @@ if ($config['poll2agent'] !== true) {
             $point->value = 1;
             $point->tags = new stdClass();
             $point->tags->poller = $config['agent_host'];
+            $point->tags->type = 'snmp';
             $pol_arr = [];
             array_push($pol_arr, $point);
             postData2api(json_encode($pol_arr), 'metrics','poller_up=poller_up&device_id='.$device['device_id']);
