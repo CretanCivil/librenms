@@ -147,6 +147,10 @@ if ($config['nographite'] !== true && $config['graphite']['enable'] === true) {
 
 rrdtool_initialize();
 
+$tags = ["poller" => $config['agent_host']];
+$agent_status = 1;
+data_to_agent([], 'poller.up', $tags, $agent_status);
+
 echo "Starting polling run:\n\n";
 $polled_devices = 0;
 if (!isset($query)) {

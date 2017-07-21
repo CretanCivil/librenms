@@ -237,6 +237,10 @@ function poll_device($device, $options)
 
     $response = device_is_up($device, true);
 
+    $tags = ["host" => trim(strtolower($device['sysName']))];
+    $agent_status = $response['status'];
+    data_to_agent($device, 'paasinsight.agent.up', $tags, $agent_status);
+
     if ($response['status'] == '1') {
         $graphs    = array();
         $oldgraphs = array();

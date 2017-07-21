@@ -74,7 +74,7 @@ function data_to_agent($device, $measurement, $tags, $fields)
 
             array_push($g_metric_data, $point);
 
-            if(!in_array($m_service[0],$g_metric_service)){
+            if(!in_array($m_service[0],$g_metric_service) && $m_service[0] != 'paasinsight'){
                 $std = new stdClass();
                 $std->status = 0;
                 $std->tags = ["check:".$m_service[0]];
@@ -96,7 +96,7 @@ function data_to_agent($device, $measurement, $tags, $fields)
 
                 array_push($g_metric_data, $point);
 
-                if(!in_array($m_service[0],$g_metric_service)){
+                if(!in_array($m_service[0],$g_metric_service) && $m_service[0] != 'paasinsight'){
                     $std = new stdClass();
                     $std->status = 0;
                     $std->tags = ["check:".$m_service[0]];
