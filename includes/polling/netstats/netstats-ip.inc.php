@@ -46,7 +46,7 @@ if (!starts_with($device['os'], array('Snom', 'asa'))) {
 
     if (isset($data[0]['ipOutRequests']) && isset($data[0]['ipInReceives'])) {
         $tags = compact('rrd_def');
-        data_update($device, 'netstats-ip', $tags, $fields);
+        //data_update($device, 'netstats-ip', $tags, $fields);
 
         $graphs['netstat_ip']      = true;
         $graphs['netstat_ip_frag'] = true;
