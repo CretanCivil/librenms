@@ -161,9 +161,9 @@ if ($config['poll2agent'] !== true) {
             $device['vrf_lite_cisco'] = '';
         }
         poll_device($device, $options);
-        echo "#### Start Alerts ####\n";
-        RunRules($device['device_id']);
-        echo "#### End Alerts ####\r\n";
+        //echo "#### Start Alerts ####\n";
+        //RunRules($device['device_id']);
+        //echo "#### End Alerts ####\r\n";
         $polled_devices++;
     }
 
@@ -253,7 +253,7 @@ if (!isset($options['q'])) {
     printStats();
 }
 
-logfile($string);
+//logfile($string);
 rrdtool_close();
 unset($config);
 // Remove this for testing
