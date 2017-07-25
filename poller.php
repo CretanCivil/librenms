@@ -154,6 +154,7 @@ if (!isset($query)) {
 }
 
 if ($config['poll2agent'] !== true) {
+    $config['poll2agent'] = true;
     foreach (dbFetch($query) as $device) {
         if ($device['os_group'] == 'cisco') {
             $device['vrf_lite_cisco'] = dbFetchRows("SELECT * FROM `vrf_lite_cisco` WHERE `device_id` = " . $device['device_id']);
