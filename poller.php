@@ -145,7 +145,7 @@ if ($config['nographite'] !== true && $config['graphite']['enable'] === true) {
     $graphite = false;
 }
 
-rrdtool_initialize();
+//rrdtool_initialize();
 
 echo "Starting polling run:\n\n";
 $polled_devices = 0;
@@ -292,7 +292,7 @@ if (!isset($options['q'])) {
 }
 
 //logfile($string);
-rrdtool_close();
+//rrdtool_close();
 unset($config);
 // Remove this for testing
 // print_r(get_defined_vars());
