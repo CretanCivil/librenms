@@ -731,7 +731,10 @@ foreach ($ports as $port) {
         $port_descr_type = $port['port_descr_type'];
         $ifName = $port['ifName'];
         $tags = compact('ifName', 'port_descr_type', 'rrd_name', 'rrd_def');
-        rrdtool_data_update($device, 'ports', $tags, $fields);
+        if (!$config['poll2agent']) {
+            rrdtool_data_update($device, 'ports', $tags, $fields);
+        }
+
 
         $fields['ifInUcastPkts_rate'] = $port['ifInUcastPkts_rate'];
         $fields['ifOutUcastPkts_rate'] = $port['ifOutUcastPkts_rate'];
@@ -740,12 +743,16 @@ foreach ($ports as $port) {
         $fields['ifInOctets_rate'] = $port['ifInOctets_rate'];
         $fields['ifOutOctets_rate'] = $port['ifOutOctets_rate'];
 
-        influx_update($device, 'ports', rrd_array_filter($tags), $fields);
-        graphite_update($device, 'ports|' . $ifName, $tags, $fields);
+        if (!$config['poll2agent']) {
+            influx_update($device, 'ports', rrd_array_filter($tags), $fields);
+            graphite_update($device, 'ports|' . $ifName, $tags, $fields);
+        }
 
         unset($tags["port_descr_type"]);
         $tags["ifAlias"] = $this_port['ifAlias'];
-        data_to_agent($device, 'ports',$tags, $fields);
+        if ($config['poll2agent']) {
+            data_to_agent($device, 'ports', $tags, $fields);
+        }
         // End Update IF-MIB
         // Update PAgP
         if ($this_port['pagpOperationMode'] || $port['pagpOperationMode']) {
