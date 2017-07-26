@@ -224,7 +224,7 @@ if (isset($opts['r'])) {
         echo 'Scanned '.$stats['count'].' IPs, Already known '.$stats['known'].' Devices, Added '.$stats['added'].' Devices, Failed to add '.$stats['failed'].' Devices.'.PHP_EOL;
         echo 'Runtime: '.(microtime(true)-$ts).' secs'.PHP_EOL;
 
-        $commandString = __DIR__ . "discovery-wrapper.py 10 > /dev/null &";
+        $commandString = __DIR__ . "/discovery-wrapper.py 10 > /dev/null &";
         echo $commandString;
         fclose(popen($commandString, 'r'));
     } else {
