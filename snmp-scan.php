@@ -183,6 +183,18 @@ if (isset($opts['h']) || (empty($opts) && (!isset($config['nets']) || empty($con
     echo '  -h                Print this text'.PHP_EOL;
     exit(0);
 }
+/*
+ * 127.0.0.1/24 127.0.0.0 ~ 255
+ * 127.0.0.1/25 127.0.0.0 ~ 127
+ * 127.0.0.1/26 127.0.0.0 ~ 63
+ * 127.0.0.1/27 127.0.0.0 ~ 31
+ * 127.0.0.1/28 127.0.0.0 ~ 15
+ * 127.0.0.1/29 127.0.0.0 ~ 7
+ * 127.0.0.1/30 127.0.0.0 ~ 3
+ * 127.0.0.1/31 127.0.0.0 ~ 1
+ * 127.0.0.1/32 127.0.0.1
+ * 
+ * */
 if (isset($opts['d']) || isset($opts['v'])) {
     if (isset($opts['v'])) {
         $vdebug = true;
@@ -211,6 +223,10 @@ if (isset($opts['r'])) {
         perform_snmp_scan($net, $force_network, $force_broadcast);
         echo 'Scanned '.$stats['count'].' IPs, Already known '.$stats['known'].' Devices, Added '.$stats['added'].' Devices, Failed to add '.$stats['failed'].' Devices.'.PHP_EOL;
         echo 'Runtime: '.(microtime(true)-$ts).' secs'.PHP_EOL;
+
+        $commandString = __DIR__ . "discovery-wrapper.py 10 > /dev/null &";
+        echo $commandString;
+        fclose(popen($commandString, 'r'));
     } else {
         echo 'Could not interpret supplied CIDR noted IP-Range: '.$opts['r'].PHP_EOL;
         exit(2);
@@ -220,8 +236,14 @@ if (isset($opts['r'])) {
         $config['nets'] = array( $config['nets'] );
     }
     foreach ($config['nets'] as $subnet) {
-        $net = Net_IPv4::parseAddress($subnet);
-        perform_snmp_scan($net, $force_network, $force_broadcast);
+        // echo __FILE__;
+        // exit(0);
+        $commandString = "php " . __FILE__ . " -r " . $subnet . "> /dev/null &";
+        echo $commandString;
+        fclose(popen($commandString, 'r'));
+
+        // $net = Net_IPv4::parseAddress($subnet);
+        // perform_snmp_scan($net, $force_network, $force_broadcast);
     }
     echo 'Scanned '.$stats['count'].' IPs, Already know '.$stats['known'].' Devices, Added '.$stats['added'].' Devices, Failed to add '.$stats['failed'].' Devices.'.PHP_EOL;
     echo 'Runtime: '.(microtime(true)-$ts).' secs'.PHP_EOL;
