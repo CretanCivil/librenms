@@ -750,6 +750,7 @@ function createHost(
                 error_log("device_update ===== " . json_encode($device) . "\r\n", 3, "/opt/librenms/logs/my-errors.log");
                 dbUpdate($device,'devices','device_id = ?',array($device_id['device_id']));
                 $device['device_id'] = $device_id['device_id'];
+                $device['pollerName'] = $config['agent_host'];
                 postData2api(json_encode($device),'device');
                 return $device['device_id'];
             } else {
@@ -758,6 +759,7 @@ function createHost(
                 if ($device_id) {
                     oxidized_reload_nodes();
                     $device['device_id'] = $device_id;
+                    $device['pollerName'] = $config['agent_host'];
                     postData2api(json_encode($device),'device');
                     return $device_id;
                 }
@@ -770,6 +772,7 @@ function createHost(
         if (host_exists($host, $snmphost)) {
             $device_id = dbFetchRow('SELECT device_id  FROM devices WHERE hostname = ?', array($host),true);
             $device['device_id'] = $device_id['device_id'];
+            $device['pollerName'] = $config['agent_host'];
             postData2api(json_encode($device),'device');
             throw new HostExistsException("Already have host $host ($snmphost)");
         }
@@ -778,6 +781,7 @@ function createHost(
         if ($device_id) {
             oxidized_reload_nodes();
             $device['device_id'] = $device_id;
+            $device['pollerName'] = $config['agent_host'];
             postData2api(json_encode($device),'device');
             return $device_id;
         }
