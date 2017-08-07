@@ -90,7 +90,7 @@ foreach (array('sysLocation', 'sysContact') as $elem) {
 
 // Save results of various polled values to the database
 foreach (array('sysContact', 'sysObjectID', 'sysName', 'sysDescr') as $elem) {
-    if ($poll_device[$elem] != $device[$elem]) {
+    if ($poll_device[$elem] != $device[$elem] && !empty($poll_device[$elem])) {
         $update_array[$elem] = $poll_device[$elem];
         log_event("$elem -> " . $poll_device[$elem], $device, 'system', 3);
     }
