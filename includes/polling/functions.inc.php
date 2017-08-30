@@ -378,7 +378,8 @@ function poll_device($device, $options)
                 'hardware' => isset($hardware) ? $hardware : '',
                 'serial' => isset($serial) ? $serial : '',
                 'sysObjectID' => isset($poll_device['sysObjectID']) ? $poll_device['sysObjectID'] : '',
-                'deviceType' => isset($device['type']) ? $device['type'] : ''
+                'deviceType' => isset($device['type']) ? $device['type'] : '',
+                'deviceStatus' => 1,
             ];
             postData2api(json_encode($post_data),'device_poller','device_id='.$device['device_id']);
             echo "UPDATED!\n";
@@ -388,7 +389,11 @@ function poll_device($device, $options)
         // Clear cache of hrStorage ** MAYBE FIXME? **
         unset($cache);
         // Clear cache (unify all things here?)
+    }else{
+        $post_data = ['deviceStatus' => 0];
+        postData2api(json_encode($post_data),'device_poller','device_id='.$device['device_id']);
     }//end if
+
 }//end poll_device()
 
 /**
